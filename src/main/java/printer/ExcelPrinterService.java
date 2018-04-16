@@ -34,8 +34,10 @@ public class ExcelPrinterService {
     }
 
     public void printReport(Set<Ticket> tickets) throws IOException {
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream(TEMPLATE_FILE);
-        XSSFWorkbook workbook = new XSSFWorkbook(is);
+        XSSFWorkbook workbook;
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream(TEMPLATE_FILE)) {
+            workbook = new XSSFWorkbook(is);
+        }
 
         XSSFCellStyle style = workbook.createCellStyle();
         style.setBorderTop(BorderStyle.THIN);
@@ -53,7 +55,7 @@ public class ExcelPrinterService {
         fillTable(tickets, sheet, startRowNum, style);
         createReportFooter(workbook, sheet);
         setTotalAndResolvedOnTimeTicketsCount(tickets, sheet);
-        saveReport(is, workbook);
+        saveReport(workbook);
 
         System.out.println("Done");
     }
@@ -170,13 +172,13 @@ public class ExcelPrinterService {
         });
     }
 
-    private void saveReport(InputStream is, XSSFWorkbook workbook) {
+    private void saveReport(XSSFWorkbook workbook) throws IOException {
         try (FileOutputStream outputStream = new FileOutputStream(reportPath)) {
             workbook.write(outputStream);
-            is.close();
-            workbook.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }finally {
+            workbook.close();
         }
     }
 
