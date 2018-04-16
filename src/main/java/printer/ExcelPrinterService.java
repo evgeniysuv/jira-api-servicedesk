@@ -1,11 +1,14 @@
 package printer;
 
 import model.Ticket;
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.util.HSSFColor;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.*;
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellCopyPolicy;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.FileOutputStream;
 import java.io.IOException;

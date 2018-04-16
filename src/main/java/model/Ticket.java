@@ -1,6 +1,9 @@
 package model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Ticket {
     private String ticketKey;
@@ -107,5 +110,20 @@ public class Ticket {
 
     public void setMinutesOfSupport(double minutesOfSupport) {
         this.minutesOfSupport = minutesOfSupport;
+    }
+
+    public List<String> getFieldsList() {
+        List<String> res = new ArrayList<>();
+        res.add(ticketKey);
+        res.add(description);
+        res.add(status);
+        res.add(String.valueOf(created));
+        res.add(type);
+        res.add(priority);
+        res.add(paid);
+        res.add(elapsedTime);
+        res.add(String.valueOf(remainingTime));
+        res.add(String.valueOf(minutesOfSupport));
+        return Collections.unmodifiableList(res);
     }
 }
