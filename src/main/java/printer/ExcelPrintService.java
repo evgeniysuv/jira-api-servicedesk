@@ -15,21 +15,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.time.format.TextStyle.FULL;
 import static java.time.format.TextStyle.FULL_STANDALONE;
 
-public class ExcelPrinterService {
+public class ExcelPrintService<T> implements PrintService<T> {
     private static final String TEMPLATE_FILE = "templates/template_report.xlsx";
     private final String reportPath;
     private LocalDate lastDayOfMonth;
 
-    public ExcelPrinterService(String reportPath) {
+    public ExcelPrintService(String reportPath) {
         this.reportPath = reportPath;
     }
 
@@ -184,5 +181,11 @@ public class ExcelPrinterService {
 
     public void setDate(LocalDate lastDayOfMonth) {
         this.lastDayOfMonth = lastDayOfMonth;
+
+    }
+
+    @Override
+    public void printReport(Collection<T> collection) {
+
     }
 }
