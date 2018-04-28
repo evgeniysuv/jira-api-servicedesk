@@ -1,12 +1,13 @@
 package executable;
 
 import client.JiraServiceDeskClient;
+import config.ApplicationContextProvider;
 import javafx.util.Pair;
 import model.Ticket;
 import org.json.simple.JSONObject;
-import org.springframework.core.convert.converter.Converter;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.stereotype.Component;
-import printer.ExcelPrintService;
+import printer.PrintService;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -14,7 +15,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static java.time.LocalDate.parse;
 import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
 
 /**
@@ -22,34 +22,37 @@ import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
  */
 @Component
 public class JiraReportApplication {
+
     private static final String DATE_PATTERN = "yyyy/MM/dd";
-    private final Converter converter;
 
-    public JiraReportApplication(Converter converter) {
-        this.converter = converter;
-    }
+    public static void main(String[] args) {
 
-    public static void main(String[] args) throws IOException {
         printBanner();
 
-        if (!(args.length == 7))
+        if (!(args.length == 7)) {
             throw new IllegalArgumentException();
+        }
 
-        String jiraUrl = args[0];
-        String jiraAdminUserName = args[1];
-        String jiraAdminPassword = args[2];
-        String projectKey = args[3];
-        String from = args[4];
-        String to = args[5];
-        String reportPath = args[6];
+        EnumMap<PARAMS, String> params = new EnumMap<>(PARAMS.class);
+        params.put(PARAMS.JIRA_URL, args[0]);
+        params.put(PARAMS.JIRA_ADMIN_USER_NAME, args[1]);
+        params.put(PARAMS.JIRA_ADMIN_PASSWORD, args[2]);
+        params.put(PARAMS.PROJECT_KEY, args[3]);
+        params.put(PARAMS.FROM, args[4]);
+        params.put(PARAMS.TO, args[5]);
+        params.put(PARAMS.REPORT_PATH, args[6]);
+
+
+        ApplicationContextProvider contextProvider = new ApplicationContextProvider();
+        AutowireCapableBeanFactory factory = contextProvider.getApplicationContext().getAutowireCapableBeanFactory();
+        factory.autowireBean(params);
+        factory.initializeBean(params, "params");
+        ReportHandler reportHandler = factory.getBean(ReportHandler.class);
+        reportHandler.execute();
+
+
         LocalDate lastDayOfMonth = parse(to, DateTimeFormatter.ofPattern(DATE_PATTERN)).with(lastDayOfMonth());
 
-        JiraServiceDeskClient client = JiraServiceDeskClient.builder()
-                .setServerUrl(jiraUrl)
-                .setUserName(jiraAdminUserName)
-                .setPassword(jiraAdminPassword)
-                .setProjectKey(projectKey)
-                .build();
 
         HashMap<String, JSONObject> issues = collectIssues(from, to, client);
         Set<Ticket> tickets = new TreeSet<>(Comparator.comparing(Ticket::getTicketKey));
@@ -58,19 +61,18 @@ public class JiraReportApplication {
             tickets.add(ticket);
         });
 
-        ExcelPrintService excelPrintService = new ExcelPrintService(reportPath);
-        excelPrintService.setDate(lastDayOfMonth);
-        excelPrintService.printReport(tickets);
+        printService.setDate(lastDayOfMonth);
+        printService.printReport(tickets);
 
     }
 
     private static void printBanner() {
         String intro =
                 "**********************************************************************************************\r\n" +
-                        "* JIRA Java REST Client ('JRJC') example.                                                    *\r\n" +
-                        "* NOTE: Start JIRA using the Atlassian Plugin SDK before running this example.               *\r\n" +
-                        "* (for example, use 'atlas-run-standalone --product jira --version 7.6 --data-version 7.6'.) *\r\n" +
-                        "**********************************************************************************************\r\n";
+                "* JIRA Java REST Client ('JRJC') example.                                                    *\r\n" +
+                "* NOTE: Start JIRA using the Atlassian Plugin SDK before running this example.               *\r\n" +
+                "* (for example, use 'atlas-run-standalone --product jira --version 7.6 --data-version 7.6'.) *\r\n" +
+                "**********************************************************************************************\r\n";
         System.out.println(intro);
     }
 
@@ -106,5 +108,16 @@ public class JiraReportApplication {
         issues.putAll(client.getIssuesBySpecificDateInPeriod("resolved", from, to));
         issues.putAll(client.getUnfinishedIssues());
         return issues;
+    }
+
+
+    public enum PARAMS {
+        JIRA_URL,
+        JIRA_ADMIN_USER_NAME,
+        JIRA_ADMIN_PASSWORD,
+        PROJECT_KEY,
+        FROM,
+        TO,
+        REPORT_PATH
     }
 }

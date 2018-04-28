@@ -9,6 +9,9 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.stereotype.Service;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -21,16 +24,16 @@ import java.util.stream.Collectors;
 import static java.time.format.TextStyle.FULL;
 import static java.time.format.TextStyle.FULL_STANDALONE;
 
+@Service
 public class ExcelPrintService<T> implements PrintService<T> {
     private static final String TEMPLATE_FILE = "templates/template_report.xlsx";
-    private final String reportPath;
+    private String reportPath;
     private LocalDate lastDayOfMonth;
 
-    public ExcelPrintService(String reportPath) {
-        this.reportPath = reportPath;
-    }
-
-    public void printReport(Set<Ticket> tickets) throws IOException {
+    @Override
+    @SuppressWarnings({"unchecked", "deprecation"})
+    public void printReport(@NotNull Set<T> data) throws IOException {
+        Set<Ticket> tickets = (Set<Ticket>) data;
         XSSFWorkbook workbook;
         try (InputStream is = this.getClass().getClassLoader().getResourceAsStream(TEMPLATE_FILE)) {
             workbook = new XSSFWorkbook(is);
@@ -185,7 +188,16 @@ public class ExcelPrintService<T> implements PrintService<T> {
     }
 
     @Override
-    public void printReport(Collection<T> collection) {
+    public void setHeaderParams(@Nullable Map<String, String> headerParams) {
 
+    }
+
+    @Override
+    public void setFooterParams(@Nullable Map<String, String> footerParams) {
+
+    }
+
+    public void setReportPath(@NotNull String reportPath) {
+        this.reportPath = reportPath;
     }
 }
