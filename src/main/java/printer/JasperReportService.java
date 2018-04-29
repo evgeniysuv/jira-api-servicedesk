@@ -9,7 +9,7 @@ import java.util.Set;
 /**
  * Created by esuv on 4/19/18
  */
-public class JasperPrintService<T> implements PrintService<T> {
+public class JasperReportService<T> implements ReportService<T> {
 
     @Override
     public void setHeaderParams(@Nullable Map<String, String> headerParams) {

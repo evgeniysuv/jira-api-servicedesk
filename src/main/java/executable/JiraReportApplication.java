@@ -7,14 +7,13 @@ import model.Ticket;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.stereotype.Component;
-import printer.PrintService;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import static java.time.LocalDate.parse;
 import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
 
 /**
@@ -51,7 +50,7 @@ public class JiraReportApplication {
         reportHandler.execute();
 
 
-        LocalDate lastDayOfMonth = parse(to, DateTimeFormatter.ofPattern(DATE_PATTERN)).with(lastDayOfMonth());
+        LocalDate lastDayOfMonth = parse("", DateTimeFormatter.ofPattern(DATE_PATTERN)).with(lastDayOfMonth());
 
 
         HashMap<String, JSONObject> issues = collectIssues(from, to, client);
@@ -103,13 +102,11 @@ public class JiraReportApplication {
 
     private static HashMap<String, JSONObject> collectIssues(String from, String to, JiraServiceDeskClient client) {
         Map<String, JSONObject> created = client.getIssuesBySpecificDateInPeriod("created", from, to);
-        HashMap<String, JSONObject> issues =
-                new HashMap<>(created);
+        HashMap<String, JSONObject> issues = new HashMap<>(created);
         issues.putAll(client.getIssuesBySpecificDateInPeriod("resolved", from, to));
         issues.putAll(client.getUnfinishedIssues());
         return issues;
     }
-
 
     public enum PARAMS {
         JIRA_URL,

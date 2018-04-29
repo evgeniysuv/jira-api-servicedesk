@@ -25,7 +25,7 @@ import static java.time.format.TextStyle.FULL;
 import static java.time.format.TextStyle.FULL_STANDALONE;
 
 @Service
-public class ExcelPrintService<T> implements PrintService<T> {
+public class ExcelReportService<T> implements ReportService<T> {
     private static final String TEMPLATE_FILE = "templates/template_report.xlsx";
     private String reportPath;
     private LocalDate lastDayOfMonth;

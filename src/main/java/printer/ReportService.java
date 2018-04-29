@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  * Created by esuv on 4/19/18
  */
-public interface PrintService<T> {
+public interface ReportService<T> {
 
     void setHeaderParams(@Nullable Map<String, String> headerParams);
 

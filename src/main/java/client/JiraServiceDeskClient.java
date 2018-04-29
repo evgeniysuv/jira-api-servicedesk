@@ -30,7 +30,7 @@ public class JiraServiceDeskClient {
     private JSONParser jsonParser;
 
     private JiraServiceDeskClient() {
-
+        //Nothing to do here
     }
 
     public static Builder builder() {
