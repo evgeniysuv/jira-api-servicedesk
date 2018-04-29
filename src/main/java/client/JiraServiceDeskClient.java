@@ -30,7 +30,7 @@ public class JiraServiceDeskClient {
     private JSONParser jsonParser;
 
     private JiraServiceDeskClient() {
-
+        //Nothing to do here
     }
 
     public static Builder builder() {
@@ -71,8 +71,7 @@ public class JiraServiceDeskClient {
             jsonParser = new JSONParser();
             client = Client.create();
             client.addFilter(new HTTPBasicAuthFilter(userName, password));
-            System.out.println(String.format("Logging in to %s with username '%s' and password '%s'",
-                    serverUrl, userName, password));
+            System.out.println(String.format("Logging in to %s with username '%s'", serverUrl, userName));
             return JiraServiceDeskClient.this;
         }
     }
@@ -97,21 +96,35 @@ public class JiraServiceDeskClient {
         return getElapsedTime(response);
     }
 
-    public String getRemainingTimeByIssue(JSONObject issue) {
+    public Long getRemainingTimeByIssue(JSONObject issue) {
         String url = getServiceDeskUrl(issue, "customfield_10319");
         JSONObject response = getResponse(url);
-        String remainingTime = getRemainingTime(response);
-        if (remainingTime.equals("null")) {
+        Long remainingTime = getRemainingTime(response);
+        if (remainingTime == null) {
             url = getServiceDeskUrl(issue, "customfield_10320");
             response = getResponse(url);
             List completedCycles = (List) response.get("completedCycles");
             if (!completedCycles.isEmpty()) {
-                remainingTime = (String) ((JSONObject) ((JSONObject) completedCycles.get(0))
+                remainingTime = (Long) ((JSONObject) ((JSONObject) completedCycles.get(0))
                         .get("remainingTime"))
-                        .get("friendly");
+                        .get("millis");
             }
         }
         return remainingTime;
+    }
+
+    private Long getRemainingTime(JSONObject response) {
+        JSONObject cycle = (JSONObject) response.get("ongoingCycle");
+        if (cycle == null) {
+            JSONArray cycleArray = (JSONArray) response.get("completedCycles");
+            if (!cycleArray.isEmpty()) {
+                cycle = (JSONObject) cycleArray.get(0);
+                return (Long) ((JSONObject) cycle.get("remainingTime")).get("millis");
+            }
+        } else {
+            return (Long) ((JSONObject) cycle.get("remainingTime")).get("millis");
+        }
+        throw new ServiceDeskElapsedTimeNotFound();
     }
 
     private String getElapsedTime(JSONObject response) {
@@ -124,20 +137,6 @@ public class JiraServiceDeskClient {
             }
         } else {
             return (String) ((JSONObject) cycle.get("elapsedTime")).get("friendly");
-        }
-        throw new ServiceDeskElapsedTimeNotFound();
-    }
-
-    private String getRemainingTime(JSONObject response) {
-        JSONObject cycle = (JSONObject) response.get("ongoingCycle");
-        if (cycle == null) {
-            JSONArray cycleArray = (JSONArray) response.get("completedCycles");
-            if (!cycleArray.isEmpty()) {
-                cycle = (JSONObject) cycleArray.get(0);
-                return (String) ((JSONObject) cycle.get("remainingTime")).get("friendly");
-            }
-        } else {
-            return (String) ((JSONObject) cycle.get("remainingTime")).get("friendly");
         }
         throw new ServiceDeskElapsedTimeNotFound();
     }
