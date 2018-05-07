@@ -25,4 +25,9 @@ public class JasperReportService<T> implements ReportService<T> {
     public void printReport(@NotNull Set<T> data) {
 
     }
+
+    @Override
+    public void setReportPath(@NotNull String reportPath) {
+
+    }
 }

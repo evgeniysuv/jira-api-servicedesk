@@ -1,4 +1,4 @@
-package executable;
+package handler;
 
 import client.JiraServiceDeskClient;
 import executable.JiraReportApplication.PARAMS;
@@ -6,6 +6,7 @@ import javafx.util.Pair;
 import model.Ticket;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import printer.ReportService;
@@ -23,19 +24,15 @@ import static executable.JiraReportApplication.PARAMS.*;
  */
 @Component
 public class ReportHandler {
-    private final EnumMap<PARAMS, String> params;
+    private final ReportService reportService;
+    private final Converter<Pair<String, JSONObject>, Ticket> issueConverter;
 
-    @Autowired
-    private ReportService reportService;
-
-    @Autowired
-    private Converter<Pair<String, JSONObject>, Ticket> issueConverter;
-
-    public ReportHandler(EnumMap<PARAMS, String> params) {
-        this.params = params;
+    public ReportHandler(ReportService reportService, Converter<Pair<String, JSONObject>, Ticket> issueConverter) {
+        this.reportService = reportService;
+        this.issueConverter = issueConverter;
     }
 
-    public void execute() {
+    public void executeWithParams(EnumMap<PARAMS, String> params) {
         JiraServiceDeskClient client = JiraServiceDeskClient.builder()
                 .setServerUrl(params.get(JIRA_URL))
                 .setUserName(params.get(JIRA_ADMIN_USER_NAME))
@@ -44,7 +41,8 @@ public class ReportHandler {
                 .build();
 
 
-        Map<String, JSONObject> issues = client.getIssuesBySpecificDateInPeriod();
+        Map<String, JSONObject> issues = client
+                .getIssuesBySpecificDateInPeriod("created", FROM.toString(), TO.toString());
         Set<Ticket> tickets = issues
                 .entrySet()
                 .stream()

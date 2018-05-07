@@ -1,20 +1,20 @@
 package executable;
 
 import client.JiraServiceDeskClient;
-import config.ApplicationContextProvider;
+import config.SpringConf;
+import handler.ReportHandler;
 import javafx.util.Pair;
 import model.Ticket;
 import org.json.simple.JSONObject;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-
-import static java.time.LocalDate.parse;
-import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by esuv on 4/10/18
@@ -41,37 +41,33 @@ public class JiraReportApplication {
         params.put(PARAMS.TO, args[5]);
         params.put(PARAMS.REPORT_PATH, args[6]);
 
-
-        ApplicationContextProvider contextProvider = new ApplicationContextProvider();
-        AutowireCapableBeanFactory factory = contextProvider.getApplicationContext().getAutowireCapableBeanFactory();
-        factory.autowireBean(params);
-        factory.initializeBean(params, "params");
-        ReportHandler reportHandler = factory.getBean(ReportHandler.class);
-        reportHandler.execute();
+        ApplicationContext context = new AnnotationConfigApplicationContext(SpringConf.class);
+        ReportHandler reportHandler = context.getBean(ReportHandler.class);
+        reportHandler.executeWithParams(params);
 
 
-        LocalDate lastDayOfMonth = parse("", DateTimeFormatter.ofPattern(DATE_PATTERN)).with(lastDayOfMonth());
+//        LocalDate lastDayOfMonth = parse("", DateTimeFormatter.ofPattern(DATE_PATTERN)).with(lastDayOfMonth());
 
 
-        HashMap<String, JSONObject> issues = collectIssues(from, to, client);
-        Set<Ticket> tickets = new TreeSet<>(Comparator.comparing(Ticket::getTicketKey));
-        issues.forEach((key, issue) -> {
-            Ticket ticket = createTicketByIssue(client, new Pair<>(key, issue));
-            tickets.add(ticket);
-        });
-
-        printService.setDate(lastDayOfMonth);
-        printService.printReport(tickets);
+//        HashMap<String, JSONObject> issues = collectIssues(from, to, client);
+//        Set<Ticket> tickets = new TreeSet<>(Comparator.comparing(Ticket::getTicketKey));
+//        issues.forEach((key, issue) -> {
+//            Ticket ticket = createTicketByIssue(client, new Pair<>(key, issue));
+//            tickets.add(ticket);
+//        });
+//
+//        printService.setDate(lastDayOfMonth);
+//        printService.printReport(tickets);
 
     }
 
     private static void printBanner() {
         String intro =
                 "**********************************************************************************************\r\n" +
-                "* JIRA Java REST Client ('JRJC') example.                                                    *\r\n" +
-                "* NOTE: Start JIRA using the Atlassian Plugin SDK before running this example.               *\r\n" +
-                "* (for example, use 'atlas-run-standalone --product jira --version 7.6 --data-version 7.6'.) *\r\n" +
-                "**********************************************************************************************\r\n";
+                        "* JIRA Java REST Client ('JRJC') example.                                                    *\r\n" +
+                        "* NOTE: Start JIRA using the Atlassian Plugin SDK before running this example.               *\r\n" +
+                        "* (for example, use 'atlas-run-standalone --product jira --version 7.6 --data-version 7.6'.) *\r\n" +
+                        "**********************************************************************************************\r\n";
         System.out.println(intro);
     }
 
